@@ -1,0 +1,72 @@
+{
+  "Comment": "State Machine to handle specific use cases based on a PDF's page count",
+  "StartAt": "CheckFileExists",
+  "States": {
+    "CheckFileExists": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:us-east-1:467519156370:function:hui-lambda-validate-file-upload",
+      "Next": "CheckIfPdf"
+    },
+    "CheckIfPdf": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:us-east-1:467519156370:function:hui-lambda-validation-file-type",
+      "Next": "IsItPdf"
+    },
+    "IsItPdf": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Variable": "$.isPdf",
+          "BooleanEquals": true,
+          "Next": "ProcessPdf"
+        }
+      ],
+      "Default": "EndProcess"
+    },
+    "ProcessPdf": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:us-east-1:467519156370:function:hui-lambda-validation-pdf-pages",
+      "Next": "EvaluatePageCount"
+    },
+    "EvaluatePageCount": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Variable": "$.numPages",
+          "NumericLessThan": 12,
+          "Next": "TextractUseCase1-2"
+        },
+        {
+          "Variable": "$.numPages",
+          "NumericGreaterThanEquals": 12,
+          "Next": "EndProcessWithMoreThan12Pages"
+        }
+      ]
+    },
+    "TextractUseCase1-2": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:us-east-1:467519156370:function:hui-lambda-textract-usecase1-2",
+      "Next": "GenAiOrganizeDataUseCase1-2"
+    },
+    "GenAiOrganizeDataUseCase1-2": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:us-east-1:467519156370:function:hui-lambda-textract-genai-usecase1-2",
+      "Next": "PushToDynamodbUseCase1-2"
+    },
+    "PushToDynamodbUseCase1-2": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:us-east-1:467519156370:function:hui-lambda-push-dyanamodb-usecase1-2",
+      "End": true
+    },
+    "EndProcessWithMoreThan12Pages": {
+      "Type": "Pass",
+      "Result": "This PDF has 12 pages or more.",
+      "End": true
+    },
+    "EndProcess": {
+      "Type": "Pass",
+      "Result": "Process completed or skipped for non-PDF.",
+      "End": true
+    }
+  }
+}

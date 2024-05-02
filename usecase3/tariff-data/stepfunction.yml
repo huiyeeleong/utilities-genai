@@ -1,0 +1,21 @@
+{
+  "Comment": "State Machine to handle specific push tariff data",
+  "StartAt": "ConvertTariffData",
+  "States": {
+    "ConvertTariffData": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:us-east-1:467519156370:function:hui-lambda-tariff-data-usecase3",
+      "Next": "OrganizeTariffData"
+    },
+    "OrganizeTariffData": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:us-east-1:467519156370:function:hui-lambda-organize-tariff-usecase3",
+      "Next": "TarrifDataPushToDynamodb"
+    },
+    "TarrifDataPushToDynamodb": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:us-east-1:467519156370:function:hui-lambda-push-tariff-dynamo-usecase3",
+      "End": true
+    }
+  }
+}
